@@ -4,12 +4,15 @@ import logging.config
 import os
 import sys
 
+import twitter
+from pymongo import MongoClient
+
 import config
 import constants
-import twitter
 
 conf = None
 twitter_api = None
+mongo_client = None
 
 
 def setup_logging(
@@ -43,6 +46,23 @@ def setup_twitter():
 
     logging.info("Twitter API client set up.")
 
+
+def setup_mongo():
+    logging.info("Setting up MongoDB client...")
+
+    mongo_client = MongoClient(conf.config["mongodb"]["uri"])
+
+    logging.info("Verifying MongoDB client credentials...")
+    db = mongo_client[conf.config["mongodb"]["database"]]
+    db.authenticate(
+        conf.config["mongodb"]["user"],
+        conf.config["mongodb"]["password"],
+        mechanism=conf.config["mongodb"]["mechanism"])
+    logging.info("MongoDB client credentials verified.")
+
+    logging.info("MongoDB client set up.")
+
+
 if __name__ == '__main__':
     # configure logger
     setup_logging()
@@ -54,8 +74,16 @@ if __name__ == '__main__':
         logging.error("Error getting configuration.", exc)
         sys.exit(1)
 
+    # setup Twitter API client
     try:
         setup_twitter()
     except Exception as exc:
         logging.error("Error setting up Twitter API client.", exc)
+        sys.exit(1)
+
+    # setup MongoDB client
+    try:
+        setup_mongo()
+    except Exception as exc:
+        logging.error("Error setting up MongoDB client.", exc)
         sys.exit(1)
