@@ -15,7 +15,7 @@ twitter_api = None
 mongo_client = None
 
 
-def setup_logging(
+def _setup_logging(
         path='logging.json',
         log_level=logging.DEBUG,
         env_key='LOG_CFG'
@@ -31,9 +31,10 @@ def setup_logging(
         logging.basicConfig(level=log_level)
 
 
-def setup_twitter():
+def _setup_twitter():
     logging.info("Setting up Twitter API client...")
 
+    global twitter_api
     twitter_api = twitter.Api(
         consumer_key=conf.config["twitter"]["consumer_key"],
         consumer_secret=conf.config["twitter"]["consumer_secret"],
@@ -47,9 +48,10 @@ def setup_twitter():
     logging.info("Twitter API client set up.")
 
 
-def setup_mongo():
+def _setup_mongo():
     logging.info("Setting up MongoDB client...")
 
+    global mongo_client
     mongo_client = MongoClient(conf.config["mongodb"]["uri"])
 
     logging.info("Verifying MongoDB client credentials...")
@@ -63,11 +65,12 @@ def setup_mongo():
     logging.info("MongoDB client set up.")
 
 
-if __name__ == '__main__':
+def main():
     # configure logger
-    setup_logging()
+    _setup_logging()
 
     # read configuration
+    global conf
     try:
         conf = config.Configuration(constants.CONFIG_FILE_NAME)
     except Exception as exc:
@@ -76,14 +79,18 @@ if __name__ == '__main__':
 
     # setup Twitter API client
     try:
-        setup_twitter()
+        _setup_twitter()
     except Exception as exc:
         logging.error("Error setting up Twitter API client.", exc)
         sys.exit(1)
 
     # setup MongoDB client
     try:
-        setup_mongo()
+        _setup_mongo()
     except Exception as exc:
         logging.error("Error setting up MongoDB client.", exc)
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
