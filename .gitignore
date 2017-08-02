@@ -4,11 +4,17 @@
 # PyCharm
 .idea/
 
+# VS Code
+.vscode/
+
 # configuration
 config.ini
 
 # logs
 *.log
+
+# Sphynx builds
+_build/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
