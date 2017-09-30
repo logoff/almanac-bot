@@ -10,9 +10,13 @@ from pymongo import MongoClient
 import config
 import constants
 
+DB_EPHEMERIS = 'ephemeris'
+DB_FILES = 'files'
+
 conf = None
 twitter_api = None
 mongo_client = None
+mongo_db = None
 
 
 def _setup_logging(
@@ -52,11 +56,12 @@ def _setup_mongo():
     logging.info("Setting up MongoDB client...")
 
     global mongo_client
+    global mongo_db
     mongo_client = MongoClient(conf.config["mongodb"]["uri"])
 
     logging.info("Verifying MongoDB client credentials...")
-    db = mongo_client[conf.config["mongodb"]["database"]]
-    db.authenticate(
+    mongo_db = mongo_client[conf.config["mongodb"]["database"]]
+    mongo_db.authenticate(
         conf.config["mongodb"]["user"],
         conf.config["mongodb"]["password"],
         mechanism=conf.config["mongodb"]["mechanism"])
