@@ -17,6 +17,7 @@ class Configuration:
 
         try:
             logging.info("Reading configuration...")
+            self.__read_language_configuration()
             self.__read_twitter_configuration()
             self.__read_mongodb_configuration()
             logging.info("Configuration read correctly.")
@@ -24,6 +25,16 @@ class Configuration:
             err_msg = "Error reading configuration parameters from file " + \
                       config_file_path
             raise ValueError(err_msg, e)
+
+    def __read_language_configuration(self):
+        logging.debug("Reading language configuration...")
+
+        lang_conf = self.config["language"] = {}
+
+        lang_conf["locale"] = self._config_parser.get(
+            "language", "locale")
+
+        logging.debug("Language configuration read correctly.")
 
     def __read_twitter_configuration(self):
         logging.debug("Reading Twitter configuration...")

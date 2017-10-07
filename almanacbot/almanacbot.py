@@ -1,7 +1,10 @@
+import datetime
 import json
+import locale
 import logging
 import logging.config
 import os
+import string
 import sys
 
 import twitter
@@ -70,6 +73,103 @@ def _setup_mongo():
     logging.info("MongoDB client set up.")
 
 
+def _get_next_ephemeris(date):
+    logging.debug("Getting next ephemeris...")
+
+    p_day_of_year = {
+        "$project": {
+            "date": 1,
+            "todayDayOfYear": {"$dayOfYear": date},
+            "leap": {"$or": [
+                {"$eq": [0, {"$mod": [{"$year": "$date"}, 400]}]},
+                {"$and": [
+                    {"$eq": [0, {"$mod": [{"$year": "$date"}, 4]}]},
+                    {"$ne": [0, {"$mod": [{"$year": "$date"}, 100]}]}
+                ]}
+            ]},
+            "dayOfYear": {"$dayOfYear": "$date"}
+        }
+    }
+
+    p_leap_year = {
+        "$project": {
+            "date": 1,
+            "todayDayOfYear": 1,
+            "dayOfYear": {
+                "$subtract": [
+                    "$dayOfYear",
+                    {
+                        "$cond": [
+                            {"$and":
+                                 ["$leap",
+                                  {"$gt": ["$dayOfYear", 59]}
+                                  ]},
+                            1,
+                            0]
+                    }
+                ]},
+            "diff": {"$subtract": ["$dayOfYear", "$todayDayOfYear"]}
+        }
+    }
+
+    p_past = {
+        "$project": {
+            "diff": 1,
+            "birthday": 1,
+            "positiveDiff": {
+                "$cond": {
+                    "if": {"$lt": ["$diff", 0]},
+                    "then": {"$add": ["$diff", 365]},
+                    "else": "$diff"
+                },
+            }
+        }
+    }
+
+    p_sort = {
+        "$sort": {
+            "positiveDiff": 1
+        }
+    }
+
+    p_first = {
+        "$group": {
+            "_id": "first_birthday",
+            "first": {
+                "$first": "$$ROOT"
+            }
+        }
+    }
+
+    res = mongo_db[DB_EPHEMERIS].aggregate([p_day_of_year, p_leap_year, p_past,
+                                            p_sort, p_first])
+    obj_id = res.next()['first']['_id']
+    return mongo_db[DB_EPHEMERIS].find_one({"_id": obj_id})
+
+
+def _tweet_ephemeris(eph):
+    if eph['location']:
+        twitter_api.PostUpdate(status=_process_tweet_text(eph['text'], eph),
+                               latitude=eph['location']['latitude'],
+                               longitude=eph['location']['longitude'],
+                               display_coordinates=True)
+    else:
+        twitter_api.PostUpdate(status=eph.text)
+
+
+def _process_tweet_text(text, eph):
+    today = datetime.datetime.utcnow()
+
+    template = string.Template(text)
+
+    values = {
+        "date": eph['date'].strftime("%d de %B de %Y"),
+        "years_ago": today.year - eph['date'].year
+    }
+
+    return template.substitute(values)
+
+
 def main():
     # configure logger
     _setup_logging()
@@ -80,6 +180,13 @@ def main():
         conf = config.Configuration(constants.CONFIG_FILE_NAME)
     except Exception as exc:
         logging.error("Error getting configuration.", exc)
+        sys.exit(1)
+
+    # setup language
+    try:
+        locale.setlocale(locale.LC_TIME, conf.config["language"]["locale"])
+    except Exception as exc:
+        logging.error("Error setting up language.", exc)
         sys.exit(1)
 
     # setup Twitter API client
