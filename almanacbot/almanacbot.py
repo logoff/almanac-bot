@@ -11,8 +11,8 @@ import pause
 import twitter
 from pymongo import MongoClient
 
-import config
-import constants
+from almanacbot import config
+from almanacbot import constants
 
 DB_EPHEMERIS = 'ephemeris'
 DB_FILES = 'files'
