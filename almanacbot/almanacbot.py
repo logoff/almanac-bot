@@ -7,6 +7,7 @@ import os
 import string
 import sys
 
+import pause
 import twitter
 from pymongo import MongoClient
 
@@ -74,8 +75,6 @@ def _setup_mongo():
 
 
 def _get_next_ephemeris(date):
-    logging.debug("Getting next ephemeris...")
-
     p_day_of_year = {
         "$project": {
             "date": 1,
@@ -170,6 +169,17 @@ def _process_tweet_text(text, eph):
     return template.substitute(values)
 
 
+def _get_next_eph_datetime(eph, now):
+    eph_datetime = eph['date']
+    eph_this_year = eph_datetime.replace(year=now.year)
+
+    if eph_this_year < now:
+        eph_next_year = eph_this_year.replace(year=eph_this_year.year + 1)
+        return eph_next_year
+
+    return eph_this_year
+
+
 def main():
     # configure logger
     _setup_logging()
@@ -202,6 +212,37 @@ def main():
     except Exception as exc:
         logging.error("Error setting up MongoDB client.", exc)
         sys.exit(1)
+
+    # loop over ephemeris
+    interrupted = False
+    while not interrupted:
+        # get next ephemeris
+        logging.info("Getting next ephemeris...")
+        now = datetime.datetime.utcnow()
+        next_eph = _get_next_ephemeris(now)
+        logging.debug("Next ephemeris:"
+                      + "\n\t -     text: " + next_eph['text']
+                      + "\n\t -     date: " + str(next_eph['date'])
+                      + "\n\t - location: "
+                      + str(next_eph['location']['latitude']) + ", "
+                      + str(next_eph['location']['longitude']))
+
+        # wait until publication
+        eph_pub_date = _get_next_eph_datetime(next_eph, now)
+        logging.info("Waiting until publication time: " + str(eph_pub_date))
+        try:
+            pause.until(eph_pub_date)
+        except (KeyboardInterrupt, SystemExit):
+            interrupted = True
+            logging.warning("Waiting time has been interrupted. Exiting!")
+            continue
+
+        # tweet ephemeris
+        logging.info("Tweeting ephemeris...")
+        _tweet_ephemeris(next_eph)
+
+        # wait a day to avoid duplicates
+        pause.days(1)
 
 
 if __name__ == '__main__':
