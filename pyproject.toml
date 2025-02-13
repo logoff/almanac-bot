@@ -13,10 +13,12 @@ documentation = "https://python-poetry.org/docs/"
 
 [tool.poetry]
 name = "almanac-bot"
-version = "0.3.0"
+packages = [{ include = "almanacbot" }]
+version = "0.3.2"
 description = "Almanac bot for Twitter."
 authors = [ "logoff" ]
 license = "MIT"
+readme = ["README.md"]
 classifiers = [
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Libraries :: Python Modules"
