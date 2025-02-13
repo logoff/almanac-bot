@@ -13,6 +13,9 @@ config.ini
 # logs
 *.log
 
+# ruff cache folder
+.ruff_cache
+
 # Sphynx builds
 _build/
 

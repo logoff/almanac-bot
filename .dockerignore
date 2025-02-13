@@ -3,5 +3,6 @@ __pycache__/
 .github/
 .vscode/
 .gitignore
+.ruff_cache
 Dockerfile
 README.md

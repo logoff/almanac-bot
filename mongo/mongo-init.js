@@ -29,10 +29,6 @@ db.ephemeris.insertMany([
   },
   {
     "date": new Date("1950-02-13 15:30:00"),
-    "text": "test",
-    "location": {
-        "latitude": 41.38291533569831,
-        "longitude": 2.169884207359594
-    }
+    "text": "test"
   }
 ]);

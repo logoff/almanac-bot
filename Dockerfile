@@ -1,5 +1,5 @@
-# base on Python 3.9 (Alpine)
-FROM python:3.9-alpine
+# base on Python 3.12 (Alpine)
+FROM python:3.12-alpine
 
 # upgrade pip
 RUN pip install --upgrade pip

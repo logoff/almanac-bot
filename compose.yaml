@@ -9,7 +9,7 @@ services:
     volumes:
       - ./almanacbot/:/almanac-bot/almanacbot
   mongo:
-    image: mongo:5.0.31
+    image: mongo:8.0.4
     volumes:
       - mongo_data:/data/db
       - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
