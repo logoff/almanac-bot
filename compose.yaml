@@ -11,10 +11,13 @@ services:
   mongo:
     image: mongo:5.0.31
     volumes:
-      - ./mongo_data/:/data/db
+      - mongo_data:/data/db
       - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     ports:
     - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: almanac
       MONGO_INITDB_ROOT_PASSWORD: almanac
+
+volumes:
+  mongo_data:

@@ -1,19 +1,24 @@
-# base on Python 3.6 (Alpine)
-FROM python:3.6-alpine
+# base on Python 3.9 (Alpine)
+FROM python:3.9-alpine
+
+# upgrade pip
+RUN pip install --upgrade pip
+
+# install Poetry
+RUN apk add curl gcc
+RUN curl -sSL https://install.python-poetry.org | python3 - --version "1.8.5"
+ENV PATH=/root/.local/bin:$PATH
 
 # setup app folders
 RUN mkdir /almanac-bot
 WORKDIR /almanac-bot
 RUN mkdir logs/
 
-# Adding requirements files before installing requirements
-COPY requirements.txt dev-requirements.txt ./
-
-# Install requirements and dev requirements through pip. Those should include
-# nostest, pytest or any other test framework you use
-RUN pip install -r requirements.txt -r dev-requirements.txt
+# copy project files and install dependencies
+COPY pyproject.toml poetry.lock ./
+RUN poetry install --no-root
 
 # Adding the whole repository to the image
 COPY . ./
 
-ENTRYPOINT [ "python", "-m", "almanacbot.almanacbot" ]
+ENTRYPOINT [ "poetry", "run", "python", "-m", "almanacbot.almanacbot" ]

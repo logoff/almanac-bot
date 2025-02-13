@@ -13,7 +13,7 @@ db.ephemeris.insertMany([
   },
   {
     "date": new Date("1957-09-24"),
-    "text": "S'inaugura el Camp Nou amb una missa solmne, una desfilada de diversos clubs de Catalunya i un partit entre el F.C. Barcelona i una selecció de jugadors de Varsòvia",
+    "text": "S'inaugura el Camp Nou amb una missa solmne, una desfilada de diversos clubs de Catalunya i un partit entre el F.C. Barcelona i una selecció de jugadors de Varsòvia.",
     "location": {
         "latitude": 41.3808,
         "longitude": 2.1228
@@ -28,7 +28,7 @@ db.ephemeris.insertMany([
     }
   },
   {
-    "date": new Date("1950-02-12"),
+    "date": new Date("1950-02-13 15:30:00"),
     "text": "test",
     "location": {
         "latitude": 41.38291533569831,

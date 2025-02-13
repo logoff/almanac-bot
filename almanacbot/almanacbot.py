@@ -6,13 +6,13 @@ import logging.config
 import os
 import string
 import sys
+import time
 
-import pause
+import schedule
 import twitter
 from pymongo import MongoClient
 
-from almanacbot import config
-from almanacbot import constants
+from almanacbot import config, constants
 
 DB_EPHEMERIS = 'ephemeris'
 DB_FILES = 'files'
@@ -180,6 +180,30 @@ def _get_next_eph_datetime(eph, now):
     return eph_this_year
 
 
+def _next_ephemeris():
+    logging.info("Getting next ephemeris...")
+    now = datetime.datetime.utcnow()
+    one_day = datetime.timedelta(days=1)
+
+    next_eph = _get_next_ephemeris(now)
+    logging.debug("Next ephemeris:"
+                  + "\n\t -     text: " + next_eph['text']
+                  + "\n\t -     date: " + str(next_eph['date'])
+                  + "\n\t - location: "
+                  + str(next_eph['location']['latitude']) + ", "
+                  + str(next_eph['location']['longitude']))
+
+    # return if not today
+    eph_pub_date = _get_next_eph_datetime(next_eph, now)
+    if (eph_pub_date - now) > one_day:
+        logging.debug("Ephemeris not for today, skipping until tomorrow.")
+        return
+
+    # tweet ephemeris
+    logging.info("Tweeting ephemeris...")
+    _tweet_ephemeris(next_eph)
+
+
 def main():
     # configure logger
     _setup_logging()
@@ -213,36 +237,20 @@ def main():
         logging.error("Error setting up MongoDB client.", exc)
         sys.exit(1)
 
+    # schedule the daily job
+    schedule.every(1).days.do(_next_ephemeris)
+
     # loop over ephemeris
     interrupted = False
+    schedule.run_all()
     while not interrupted:
-        # get next ephemeris
-        logging.info("Getting next ephemeris...")
-        now = datetime.datetime.utcnow()
-        next_eph = _get_next_ephemeris(now)
-        logging.debug("Next ephemeris:"
-                      + "\n\t -     text: " + next_eph['text']
-                      + "\n\t -     date: " + str(next_eph['date'])
-                      + "\n\t - location: "
-                      + str(next_eph['location']['latitude']) + ", "
-                      + str(next_eph['location']['longitude']))
-
-        # wait until publication
-        eph_pub_date = _get_next_eph_datetime(next_eph, now)
-        logging.info("Waiting until publication time: " + str(eph_pub_date))
         try:
-            pause.until(eph_pub_date)
+            schedule.run_pending()
+            time.sleep(1)
         except (KeyboardInterrupt, SystemExit):
             interrupted = True
             logging.warning("Waiting time has been interrupted. Exiting!")
             continue
-
-        # tweet ephemeris
-        logging.info("Tweeting ephemeris...")
-        _tweet_ephemeris(next_eph)
-
-        # wait a day to avoid duplicates
-        pause.days(1)
 
 
 if __name__ == '__main__':
