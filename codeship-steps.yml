@@ -1,7 +1,0 @@
-- name: almanac-bot-ci
-  type: parallel
-  steps:
-  - service: almanac-bot-ci
-    command: python -m compileall -f almanacbot -q
-  - service: almanac-bot-ci
-    command: pycodestyle almanacbot

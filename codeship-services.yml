@@ -1,4 +1,0 @@
-almanac-bot-ci:
-  build:
-    image: logoff/almanac-bot-ci
-    dockerfile: Dockerfile
