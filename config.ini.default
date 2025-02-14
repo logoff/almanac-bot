@@ -8,8 +8,8 @@ access_token_key=
 access_token_secret=
 
 [mongodb]
-uri=mongodb://localhost:27017/
-database=almanac
-user=
-password=
+uri=mongodb://mongo:27017/
+database=admin
+user=almanac
+password=almanac
 mechanism='SCRAM-SHA-1'
