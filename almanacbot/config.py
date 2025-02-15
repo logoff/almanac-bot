@@ -69,6 +69,9 @@ class Configuration:
         mongo_conf["user"] = self._config_parser.get("mongodb", "user")
         mongo_conf["password"] = self._config_parser.get("mongodb", "password")
         mongo_conf["mechanism"] = self._config_parser.get("mongodb", "mechanism")
+        mongo_conf["ephemeris_collection"] = self._config_parser.get(
+            "mongodb", "ephemeris_collection"
+        )
 
         logging.debug("MongoDB configuration read correctly.")
 

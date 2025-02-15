@@ -10,6 +10,7 @@ access_token_secret=
 [mongodb]
 uri=mongodb://mongo:27017/
 database=admin
+ephemeris_collection=ephemeris
 user=almanac
 password=almanac
 mechanism='SCRAM-SHA-1'
