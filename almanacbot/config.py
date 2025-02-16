@@ -22,7 +22,7 @@ class Configuration:
             logging.info("Reading configuration...")
             self.__read_language_configuration()
             self.__read_twitter_configuration()
-            self.__read_mongodb_configuration()
+            self.__read_postgresql_configuration()
             logging.info("Configuration read correctly.")
         except Exception as e:
             err_msg = (
@@ -37,7 +37,7 @@ class Configuration:
 
         lang_conf["locale"] = self._config_parser.get("language", "locale")
 
-        logging.debug("Language configuration read correctly.")
+        logging.debug("Language configuration correctly read.")
 
     def __read_twitter_configuration(self):
         logging.debug("Reading Twitter configuration...")
@@ -57,23 +57,22 @@ class Configuration:
             "twitter", "access_token_secret"
         )
 
-        logging.debug("Twitter configuration read correctly.")
+        logging.debug("Twitter configuration correctly read.")
 
-    def __read_mongodb_configuration(self):
-        logging.debug("Reading MongoDB configuration...")
+    def __read_postgresql_configuration(self):
+        logging.debug("Reading PostgreSQL configuration...")
 
-        mongo_conf = self._config["mongodb"] = {}
+        postgresql_conf = self._config["postgresql"] = {}
 
-        mongo_conf["uri"] = self._config_parser.get("mongodb", "uri")
-        mongo_conf["database"] = self._config_parser.get("mongodb", "database")
-        mongo_conf["user"] = self._config_parser.get("mongodb", "user")
-        mongo_conf["password"] = self._config_parser.get("mongodb", "password")
-        mongo_conf["mechanism"] = self._config_parser.get("mongodb", "mechanism")
-        mongo_conf["ephemeris_collection"] = self._config_parser.get(
-            "mongodb", "ephemeris_collection"
+        postgresql_conf["user"] = self._config_parser.get("postgresql", "user")
+        postgresql_conf["password"] = self._config_parser.get("postgresql", "password")
+        postgresql_conf["hostname"] = self._config_parser.get("postgresql", "hostname")
+        postgresql_conf["database"] = self._config_parser.get("postgresql", "database")
+        postgresql_conf["ephemeris_table"] = self._config_parser.get(
+            "postgresql", "ephemeris_table"
         )
 
-        logging.debug("MongoDB configuration read correctly.")
+        logging.debug("PostgreSQL configuration correctly read.")
 
     @property
     def config(self):

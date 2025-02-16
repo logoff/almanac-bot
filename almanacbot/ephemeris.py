@@ -1,67 +1,79 @@
 import datetime
+from dataclasses import dataclass
+from typing import Optional
 
-from typing import Self
+from sqlalchemy import TIMESTAMP, Text, Tuple
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.types import UserDefinedType
+import sqlalchemy
 
 
-class Epehemeris:
-    DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+class Base(DeclarativeBase):
+    pass
 
-    class Location:
-        def __init__(self, latitude: float, longitude: float):
-            self._latitude: float = latitude
-            self._longitude: float = longitude
 
-        @property
-        def latitude(self) -> float:
-            return self._latitude
+@dataclass
+class Location:
+    latitude: float
+    longitude: float
 
-        @property
-        def longitude(self) -> float:
-            return self._longitude
 
-    def __init__(self, date: datetime.datetime, text: str, location: Location):
-        self._date: datetime.datetime = date
-        self._text: str = text
-        self._location: Epehemeris.Location = location
+class LatLngType(UserDefinedType):
+    """
+    Custom SQLAlchemy type to handle POINT columns.
 
-    @property
-    def date(self) -> datetime.datetime:
-        return self._date
+    References:
 
-    @property
-    def text(self) -> str:
-        return self._text
+    - https://gist.github.com/kwatch/02b1a5a8899b67df2623
+    - https://docs.sqlalchemy.org/en/14/core/custom_types.html#sqlalchemy.types.UserDefinedType  # noqa
+    """
 
-    @property
-    def location(self) -> Location:
-        return self._location
+    # Can do because we made the Location dataclass hashable
+    cache_ok = True
 
-    def __str__(self):
-        s: str = f"Date: {self.date}, text:{self.text}"
-        if self.location:
-            s = s + f" location: {self.location.latitude}, {self.location.latitude}"
-        return s
+    def get_col_spec(self):
+        return "POINT"
 
-    def serialize(self) -> dict:
-        db_eph: dict = {}
+    def bind_expression(self, bindvalue):
+        return sqlalchemy.func.POINT(bindvalue, type_=self)
 
-        db_eph["date"] = self.date.strftime(format=Epehemeris.DATE_FORMAT)
-        db_eph["text"] = self.text
-        if self.location:
-            db_eph["location"]["latitude"] = self.location.latitude
-            db_eph["location"]["longitude"] = self.location.longitude
-        return db_eph
+    def bind_processor(self, dialect):
+        """
+        Return function to serialize a Coordinate into a database string literal.
+        """
 
-    @staticmethod
-    def deserialize(db_eph: dict) -> Self:
-        location: Epehemeris.Location = None
-        if "location" in db_eph:
-            location = Epehemeris.Location(
-                latitude=db_eph["location"]["latitude"],
-                longitude=db_eph["location"]["longitude"],
-            )
-        return Epehemeris(
-            date=db_eph["date"],
-            text=db_eph["text"],
-            location=location,
-        )
+        def process(value: Location | Tuple[float, float] | None) -> str | None:
+            if value is None:
+                return None
+
+            if isinstance(value, tuple):
+                value = Location(*value)
+
+            return f"({value.latitude},{value.longitude})"
+
+        return process
+
+    def result_processor(self, dialect, coltype):
+        """
+        Return function to parse a database string result into Python data type.
+        """
+
+        def process(value: str) -> Location | None:
+            if value is None:
+                return None
+
+            latitude, longitude = value.strip("()").split(",")
+
+            return Location(float(latitude), float(longitude))
+
+        return process
+
+
+@dataclass
+class Ephemeris(Base):
+    __tablename__ = "ephemeris"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime.datetime] = mapped_column(TIMESTAMP(timezone=True))
+    text: Mapped[str] = mapped_column(Text)
+    location: Mapped[Optional[Location]] = mapped_column(LatLngType())

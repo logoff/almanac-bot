@@ -41,11 +41,6 @@
             "level": "DEBUG",
             "handlers": ["console"],
             "propagate": "no"
-        },
-        "pymongo": {
-            "level": "ERROR",
-            "handlers": ["console"],
-            "propagate": "no"
         }
     },
 

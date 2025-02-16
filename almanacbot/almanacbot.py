@@ -1,6 +1,5 @@
 """Almanac Bot module"""
 
-import datetime
 import json
 import locale
 import logging
@@ -8,12 +7,13 @@ import logging.config
 import os
 import sys
 import time
+from typing import List
 
 import schedule
 
 from almanacbot import config, constants
-from almanacbot.ephemeris import Epehemeris
-from almanacbot.mongodb_client import MongoDBClient
+from almanacbot.ephemeris import Ephemeris
+from almanacbot.postgresql_client import PostgreSQLClient
 from almanacbot.twitter_client import TwitterClient
 
 
@@ -23,7 +23,7 @@ class AlamancBot:
     def __init__(self):
         self.conf: config.Configuration = None
         self.twitter_client: TwitterClient = None
-        self.mongodb_client: MongoDBClient = None
+        self.postgresql_client: PostgreSQLClient = None
 
         # configure logger
         self._setup_logging()
@@ -50,11 +50,11 @@ class AlamancBot:
             logging.exception("Error setting up Twitter API client.")
             sys.exit(1)
 
-        # setup MongoDB client
+        # setup PostgreSQL client
         try:
-            self._setup_mongo()
+            self._setup_postgresql()
         except ValueError:
-            logging.exception("Error setting up MongoDB client.")
+            logging.exception("Error setting up PostgreSQL client.")
             sys.exit(1)
 
         logging.info("Almanac Bot properly initialized.")
@@ -82,36 +82,27 @@ class AlamancBot:
         )
         logging.info("Twitter API client set up.")
 
-    def _setup_mongo(self) -> None:
-        logging.info("Setting up MongoDB client...")
-        self.mongodb_client: MongoDBClient = MongoDBClient(
-            mongo_uri=self.conf.config["mongodb"]["uri"],
-            username=self.conf.config["mongodb"]["user"],
-            password=self.conf.config["mongodb"]["password"],
-            db=self.conf.config["mongodb"]["database"],
-            authMechanism=self.conf.config["mongodb"]["mechanism"],
-            ephemeris_collection=self.conf.config["mongodb"]["ephemeris_collection"],
+    def _setup_postgresql(self) -> None:
+        logging.info("Setting up PostgreSQL client...")
+        self.postgresql_client: PostgreSQLClient = PostgreSQLClient(
+            user=self.conf.config["postgresql"]["user"],
+            password=self.conf.config["postgresql"]["password"],
+            hostname=self.conf.config["postgresql"]["hostname"],
+            database=self.conf.config["postgresql"]["database"],
+            ephemeris_table=self.conf.config["postgresql"]["ephemeris_table"],
         )
-        logging.info("MongoDB client set up.")
+        logging.info("PostgreSQL client set up.")
 
     def next_ephemeris(self) -> None:
         """This method obtains the next Epehemeris and publishes it arrived the moment"""
-        logging.info("Getting next ephemeris...")
-        now: datetime = datetime.datetime.now(datetime.timezone.utc)
-        one_day: datetime.timedelta = datetime.timedelta(days=1)
-
-        next_eph: Epehemeris = self.mongodb_client.get_next_ephemeris(now)
-        logging.debug(f"Next ephemeris: {next_eph}")
-
-        # return if not today
-        eph_pub_date = self.mongodb_client.get_next_eph_datetime(next_eph, now)
-        if (eph_pub_date - now) > one_day:
-            logging.debug("Ephemeris not for today, skipping until tomorrow.")
-            return
+        logging.info("Getting today's ephemeris...")
+        today_ephs: List[Ephemeris] = self.postgresql_client.get_today_ephemeris()
+        logging.debug(f"Today's ephemeris: {today_ephs}")
 
         # tweet ephemeris
         logging.info("Tweeting ephemeris...")
-        self.twitter_client.tweet_ephemeris(next_eph)
+        for today_eph in today_ephs:
+            self.twitter_client.tweet_ephemeris(today_eph)
 
 
 if __name__ == "__main__":
@@ -132,4 +123,5 @@ if __name__ == "__main__":
             time.sleep(60)
         except (KeyboardInterrupt, SystemExit):
             logging.warning("Waiting time has been interrupted. Exiting!")
+            del ab
             sys.exit(0)

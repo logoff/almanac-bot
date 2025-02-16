@@ -15,4 +15,4 @@ docker-serve-site: docker-build
   docker compose down
 
 docker-clean-db:
-  docker volume rm almanac-bot_mongo_data
+  docker volume rm almanac-bot_postgres_data

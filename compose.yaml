@@ -4,20 +4,22 @@ services:
       context: .
     container_name: "almanac-bot"
     depends_on:
-      - mongo
+      - postgres
     restart: "unless-stopped"
     volumes:
       - ./almanacbot/:/almanac-bot/almanacbot
-  mongo:
-    image: mongo:8.0.4
+  postgres:
+    image: postgres:17.3-alpine
+    restart: "unless-stopped"
     volumes:
-      - mongo_data:/data/db
-      - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
-    - 27017:27017
+    - 5432:5432
     environment:
-      MONGO_INITDB_ROOT_USERNAME: almanac
-      MONGO_INITDB_ROOT_PASSWORD: almanac
+      POSTGRES_USER: almanac
+      POSTGRES_PASSWORD: almanac
+      POSTGRES_DB: almanac
 
 volumes:
-  mongo_data:
+  postgres_data:

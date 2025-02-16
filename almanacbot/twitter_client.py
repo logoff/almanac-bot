@@ -4,7 +4,7 @@ import string
 
 import twitter
 
-from almanacbot.ephemeris import Epehemeris
+from almanacbot.ephemeris import Ephemeris
 
 
 class TwitterClient:
@@ -28,7 +28,8 @@ class TwitterClient:
         self._twitter_api.VerifyCredentials()
         logging.info("Twitter API client credentials verified.")
 
-    def tweet_ephemeris(self, eph: Epehemeris) -> None:
+    def tweet_ephemeris(self, eph: Ephemeris) -> None:
+        logging.info(f"Tweeting ephemeris: {eph}")
         self._twitter_api.PostUpdate(
             status=TwitterClient._process_tweet_text(eph),
             latitude=eph.location.latitude if eph.location else None,
@@ -37,8 +38,11 @@ class TwitterClient:
         )
 
     @staticmethod
-    def _process_tweet_text(eph: Epehemeris) -> str:
+    def _process_tweet_text(eph: Ephemeris) -> str:
         today = datetime.datetime.now(datetime.timezone.utc)
+
+        logging.error(f"ephemeris type: {type(eph)}")
+        logging.error(f"ephemeris dict: {eph.__dict__}")
 
         template = string.Template(eph.text)
 

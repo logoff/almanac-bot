@@ -8,7 +8,7 @@ Almanac bot for Twitter.
 ## Dependencies
 * [Docker](https://www.docker.com/)
 * [Python 3.12+](https://www.python.org/)
-* [MongoDB 8+](https://www.mongodb.com/)
+* [PostgreSQL 17.3+](https://www.postgresql.org/)
 * [just](https://just.systems/)
 
 ## How to run it locally
