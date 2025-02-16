@@ -1,3 +1,5 @@
-__all__ = ['almanacbot', 'config', 'constants']
+"""Init file of the module"""
 
-from almanacbot import almanacbot, config, constants
+__all__ = ["almanacbot", "config", "constants", "ephemeris", "twitter_client"]
+
+from almanacbot import almanacbot, config, constants, ephemeris, twitter_client

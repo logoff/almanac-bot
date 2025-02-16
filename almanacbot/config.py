@@ -1,67 +1,83 @@
+"""config module"""
+
 import configparser
 import logging
 
 
 class Configuration:
+    """Class containing all the configuration parameters of the program"""
+
     def __init__(self, config_file_path):
-        self.config = dict()
-        self._config_parser = configparser.ConfigParser()
+        self._config: dict = {}
+        self._config_parser: configparser = configparser.ConfigParser()
 
         try:
-            config_file = open(config_file_path, "r")
-            self._config_parser.read_file(config_file)
+            with open(config_file_path, "r", encoding="UTF-8") as config_file:
+                self._config_parser.read_file(config_file)
         except (OSError, IOError) as e:
-            err_msg = "Error reading configuration from file " + \
-                      config_file_path
-            raise ValueError(err_msg, e)
+            err_msg = f"Error reading configuration from file {config_file_path}"
+            raise ValueError(err_msg, e) from e
 
         try:
             logging.info("Reading configuration...")
             self.__read_language_configuration()
             self.__read_twitter_configuration()
-            self.__read_mongodb_configuration()
+            self.__read_postgresql_configuration()
             logging.info("Configuration read correctly.")
         except Exception as e:
-            err_msg = "Error reading configuration parameters from file " + \
-                      config_file_path
-            raise ValueError(err_msg, e)
+            err_msg = (
+                f"Error reading configuration parameters from file {config_file_path}"
+            )
+            raise ValueError(err_msg, e) from e
 
     def __read_language_configuration(self):
         logging.debug("Reading language configuration...")
 
-        lang_conf = self.config["language"] = {}
+        lang_conf = self._config["language"] = {}
 
-        lang_conf["locale"] = self._config_parser.get(
-            "language", "locale")
+        lang_conf["locale"] = self._config_parser.get("language", "locale")
 
-        logging.debug("Language configuration read correctly.")
+        logging.debug("Language configuration correctly read.")
 
     def __read_twitter_configuration(self):
         logging.debug("Reading Twitter configuration...")
 
-        twitter_conf = self.config["twitter"] = {}
+        twitter_conf = self._config["twitter"] = {}
 
+        twitter_conf["bearer_token"] = self._config_parser.get(
+            "twitter", "bearer_token"
+        )
         twitter_conf["consumer_key"] = self._config_parser.get(
-            "twitter", "consumer_key")
+            "twitter", "consumer_key"
+        )
         twitter_conf["consumer_secret"] = self._config_parser.get(
-            "twitter", "consumer_secret")
+            "twitter", "consumer_secret"
+        )
         twitter_conf["access_token_key"] = self._config_parser.get(
-            "twitter", "access_token_key")
+            "twitter", "access_token_key"
+        )
         twitter_conf["access_token_secret"] = self._config_parser.get(
-            "twitter", "access_token_secret")
+            "twitter", "access_token_secret"
+        )
 
-        logging.debug("Twitter configuration read correctly.")
+        logging.debug("Twitter configuration correctly read.")
 
-    def __read_mongodb_configuration(self):
-        logging.debug("Reading MongoDB configuration...")
+    def __read_postgresql_configuration(self):
+        logging.debug("Reading PostgreSQL configuration...")
 
-        mongo_conf = self.config["mongodb"] = {}
+        postgresql_conf = self._config["postgresql"] = {}
 
-        mongo_conf["uri"] = self._config_parser.get("mongodb", "uri")
-        mongo_conf["database"] = self._config_parser.get("mongodb", "database")
-        mongo_conf["user"] = self._config_parser.get("mongodb", "user")
-        mongo_conf["password"] = self._config_parser.get("mongodb", "password")
-        mongo_conf["mechanism"] = self._config_parser.get("mongodb",
-                                                          "mechanism")
+        postgresql_conf["user"] = self._config_parser.get("postgresql", "user")
+        postgresql_conf["password"] = self._config_parser.get("postgresql", "password")
+        postgresql_conf["hostname"] = self._config_parser.get("postgresql", "hostname")
+        postgresql_conf["database"] = self._config_parser.get("postgresql", "database")
+        postgresql_conf["ephemeris_table"] = self._config_parser.get(
+            "postgresql", "ephemeris_table"
+        )
 
-        logging.debug("MongoDB configuration read correctly.")
+        logging.debug("PostgreSQL configuration correctly read.")
+
+    @property
+    def config(self):
+        """Returns current config"""
+        return self._config

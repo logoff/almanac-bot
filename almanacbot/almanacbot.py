@@ -1,257 +1,128 @@
-import datetime
+"""Almanac Bot module"""
+
 import json
 import locale
 import logging
 import logging.config
 import os
-import string
 import sys
 import time
+from typing import List
 
 import schedule
-import twitter
-from pymongo import MongoClient
 
 from almanacbot import config, constants
-
-DB_EPHEMERIS = 'ephemeris'
-DB_FILES = 'files'
-
-conf = None
-twitter_api = None
-mongo_client = None
-mongo_db = None
+from almanacbot.ephemeris import Ephemeris
+from almanacbot.postgresql_client import PostgreSQLClient
+from almanacbot.twitter_client import TwitterClient
 
 
-def _setup_logging(
-        path='logging.json',
-        log_level=logging.DEBUG,
-        env_key='LOG_CFG'
-):
-    env_path = os.getenv(env_key, None)
-    if env_path:
-        path = env_path
-    if os.path.exists(path):
-        with open(path, 'rt') as f:
-            log_conf = json.load(f)
-        logging.config.dictConfig(log_conf)
-    else:
-        logging.basicConfig(level=log_level)
+class AlamancBot:
+    """Almanac Bot class"""
+
+    def __init__(self):
+        self.conf: config.Configuration = None
+        self.twitter_client: TwitterClient = None
+        self.postgresql_client: PostgreSQLClient = None
+
+        # configure logger
+        self._setup_logging()
+
+        # read configuration
+        logging.info("Initializing Almanac Bot...")
+        try:
+            self.conf = config.Configuration(constants.CONFIG_FILE_NAME)
+        except ValueError:
+            logging.exception("Error getting configuration.")
+            sys.exit(1)
+
+        # setup language
+        try:
+            locale.setlocale(locale.LC_TIME, self.conf.config["language"]["locale"])
+        except locale.Error:
+            logging.exception("Error setting up language.")
+            sys.exit(1)
+
+        # setup Twitter API client
+        try:
+            self._setup_twitter()
+        except ValueError:
+            logging.exception("Error setting up Twitter API client.")
+            sys.exit(1)
+
+        # setup PostgreSQL client
+        try:
+            self._setup_postgresql()
+        except ValueError:
+            logging.exception("Error setting up PostgreSQL client.")
+            sys.exit(1)
+
+        logging.info("Almanac Bot properly initialized.")
+
+    def _setup_logging(
+        self, path="logging.json", log_level=logging.DEBUG, env_key="LOG_CFG"
+    ) -> None:
+        env_path: str = os.getenv(env_key, None)
+        if env_path:
+            path = env_path
+        if os.path.exists(path):
+            with open(path, "rt", encoding="UTF-8") as f:
+                log_conf = json.load(f)
+            logging.config.dictConfig(log_conf)
+        else:
+            logging.basicConfig(level=log_level)
+
+    def _setup_twitter(self) -> None:
+        logging.info("Setting up Twitter API client...")
+        self.twitter_client = TwitterClient(
+            bearer_token=self.conf.config["twitter"]["bearer_token"],
+            consumer_key=self.conf.config["twitter"]["consumer_key"],
+            consumer_secret=self.conf.config["twitter"]["consumer_secret"],
+            access_token_key=self.conf.config["twitter"]["access_token_key"],
+            access_token_secret=self.conf.config["twitter"]["access_token_secret"],
+        )
+        logging.info("Twitter API client set up.")
+
+    def _setup_postgresql(self) -> None:
+        logging.info("Setting up PostgreSQL client...")
+        self.postgresql_client: PostgreSQLClient = PostgreSQLClient(
+            user=self.conf.config["postgresql"]["user"],
+            password=self.conf.config["postgresql"]["password"],
+            hostname=self.conf.config["postgresql"]["hostname"],
+            database=self.conf.config["postgresql"]["database"],
+            ephemeris_table=self.conf.config["postgresql"]["ephemeris_table"],
+        )
+        logging.info("PostgreSQL client set up.")
+
+    def next_ephemeris(self) -> None:
+        """This method obtains the next Epehemeris and publishes it arrived the moment"""
+        logging.info("Getting today's ephemeris...")
+        today_ephs: List[Ephemeris] = self.postgresql_client.get_today_ephemeris()
+        logging.debug(f"Today's ephemeris: {today_ephs}")
+
+        # tweet ephemeris
+        logging.info("Tweeting ephemeris...")
+        for today_eph in today_ephs:
+            self.twitter_client.tweet_ephemeris(today_eph)
 
 
-def _setup_twitter():
-    logging.info("Setting up Twitter API client...")
-
-    global twitter_api
-    twitter_api = twitter.Api(
-        consumer_key=conf.config["twitter"]["consumer_key"],
-        consumer_secret=conf.config["twitter"]["consumer_secret"],
-        access_token_key=conf.config["twitter"]["access_token_key"],
-        access_token_secret=conf.config["twitter"]["access_token_secret"])
-
-    logging.info("Verifying Twitter API client credentials...")
-    twitter_api.VerifyCredentials()
-    logging.info("Twitter API client credentials verified.")
-
-    logging.info("Twitter API client set up.")
-
-
-def _setup_mongo():
-    logging.info("Setting up MongoDB client...")
-
-    global mongo_client
-    global mongo_db
-    mongo_client = MongoClient(conf.config["mongodb"]["uri"])
-
-    logging.info("Verifying MongoDB client credentials...")
-    mongo_db = mongo_client[conf.config["mongodb"]["database"]]
-    mongo_db.authenticate(
-        conf.config["mongodb"]["user"],
-        conf.config["mongodb"]["password"],
-        mechanism=conf.config["mongodb"]["mechanism"])
-    logging.info("MongoDB client credentials verified.")
-
-    logging.info("MongoDB client set up.")
-
-
-def _get_next_ephemeris(date):
-    p_day_of_year = {
-        "$project": {
-            "date": 1,
-            "todayDayOfYear": {"$dayOfYear": date},
-            "leap": {"$or": [
-                {"$eq": [0, {"$mod": [{"$year": "$date"}, 400]}]},
-                {"$and": [
-                    {"$eq": [0, {"$mod": [{"$year": "$date"}, 4]}]},
-                    {"$ne": [0, {"$mod": [{"$year": "$date"}, 100]}]}
-                ]}
-            ]},
-            "dayOfYear": {"$dayOfYear": "$date"}
-        }
-    }
-
-    p_leap_year = {
-        "$project": {
-            "date": 1,
-            "todayDayOfYear": 1,
-            "dayOfYear": {
-                "$subtract": [
-                    "$dayOfYear",
-                    {
-                        "$cond": [
-                            {"$and":
-                                 ["$leap",
-                                  {"$gt": ["$dayOfYear", 59]}
-                                  ]},
-                            1,
-                            0]
-                    }
-                ]},
-            "diff": {"$subtract": ["$dayOfYear", "$todayDayOfYear"]}
-        }
-    }
-
-    p_past = {
-        "$project": {
-            "diff": 1,
-            "birthday": 1,
-            "positiveDiff": {
-                "$cond": {
-                    "if": {"$lt": ["$diff", 0]},
-                    "then": {"$add": ["$diff", 365]},
-                    "else": "$diff"
-                },
-            }
-        }
-    }
-
-    p_sort = {
-        "$sort": {
-            "positiveDiff": 1
-        }
-    }
-
-    p_first = {
-        "$group": {
-            "_id": "first_birthday",
-            "first": {
-                "$first": "$$ROOT"
-            }
-        }
-    }
-
-    res = mongo_db[DB_EPHEMERIS].aggregate([p_day_of_year, p_leap_year, p_past,
-                                            p_sort, p_first])
-    obj_id = res.next()['first']['_id']
-    return mongo_db[DB_EPHEMERIS].find_one({"_id": obj_id})
-
-
-def _tweet_ephemeris(eph):
-    if eph['location']:
-        twitter_api.PostUpdate(status=_process_tweet_text(eph['text'], eph),
-                               latitude=eph['location']['latitude'],
-                               longitude=eph['location']['longitude'],
-                               display_coordinates=True)
-    else:
-        twitter_api.PostUpdate(status=eph.text)
-
-
-def _process_tweet_text(text, eph):
-    today = datetime.datetime.utcnow()
-
-    template = string.Template(text)
-
-    values = {
-        "date": eph['date'].strftime("%d de %B de %Y"),
-        "years_ago": today.year - eph['date'].year
-    }
-
-    return template.substitute(values)
-
-
-def _get_next_eph_datetime(eph, now):
-    eph_datetime = eph['date']
-    eph_this_year = eph_datetime.replace(year=now.year)
-
-    if eph_this_year < now:
-        eph_next_year = eph_this_year.replace(year=eph_this_year.year + 1)
-        return eph_next_year
-
-    return eph_this_year
-
-
-def _next_ephemeris():
-    logging.info("Getting next ephemeris...")
-    now = datetime.datetime.utcnow()
-    one_day = datetime.timedelta(days=1)
-
-    next_eph = _get_next_ephemeris(now)
-    logging.debug("Next ephemeris:"
-                  + "\n\t -     text: " + next_eph['text']
-                  + "\n\t -     date: " + str(next_eph['date'])
-                  + "\n\t - location: "
-                  + str(next_eph['location']['latitude']) + ", "
-                  + str(next_eph['location']['longitude']))
-
-    # return if not today
-    eph_pub_date = _get_next_eph_datetime(next_eph, now)
-    if (eph_pub_date - now) > one_day:
-        logging.debug("Ephemeris not for today, skipping until tomorrow.")
-        return
-
-    # tweet ephemeris
-    logging.info("Tweeting ephemeris...")
-    _tweet_ephemeris(next_eph)
-
-
-def main():
-    # configure logger
-    _setup_logging()
-
-    # read configuration
-    global conf
-    try:
-        conf = config.Configuration(constants.CONFIG_FILE_NAME)
-    except Exception as exc:
-        logging.error("Error getting configuration.", exc)
-        sys.exit(1)
-
-    # setup language
-    try:
-        locale.setlocale(locale.LC_TIME, conf.config["language"]["locale"])
-    except Exception as exc:
-        logging.error("Error setting up language.", exc)
-        sys.exit(1)
-
-    # setup Twitter API client
-    try:
-        _setup_twitter()
-    except Exception as exc:
-        logging.error("Error setting up Twitter API client.", exc)
-        sys.exit(1)
-
-    # setup MongoDB client
-    try:
-        _setup_mongo()
-    except Exception as exc:
-        logging.error("Error setting up MongoDB client.", exc)
-        sys.exit(1)
+if __name__ == "__main__":
+    ab: AlamancBot = AlamancBot()
 
     # schedule the daily job
-    schedule.every(1).days.do(_next_ephemeris)
+    logging.info("Scheduling job...")
+    schedule.every(1).days.do(ab.next_ephemeris)
+    logging.info("Job scheduled.")
 
     # loop over ephemeris
-    interrupted = False
+    logging.info("Running all jobs...")
     schedule.run_all()
-    while not interrupted:
+    logging.info("All jobs run.")
+    while True:
         try:
             schedule.run_pending()
-            time.sleep(1)
+            time.sleep(60)
         except (KeyboardInterrupt, SystemExit):
-            interrupted = True
             logging.warning("Waiting time has been interrupted. Exiting!")
-            continue
-
-
-if __name__ == '__main__':
-    main()
+            del ab
+            sys.exit(0)

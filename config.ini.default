@@ -2,14 +2,16 @@
 locale=
 
 [twitter]
+# escape any '%' with '%%'
+bearer_token=
 consumer_key=
 consumer_secret=
 access_token_key=
 access_token_secret=
 
-[mongodb]
-uri=mongodb://localhost:27017/
+[postgresql]
+user=almanac
+password=almanac
+hostname=postgres
 database=almanac
-user=
-password=
-mechanism='SCRAM-SHA-1'
+ephemeris_table=ephemeris
