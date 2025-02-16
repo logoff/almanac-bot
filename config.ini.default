@@ -2,6 +2,8 @@
 locale=
 
 [twitter]
+# escape any '%' with '%%'
+bearer_token=
 consumer_key=
 consumer_secret=
 access_token_key=

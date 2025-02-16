@@ -28,7 +28,7 @@ classifiers = [
 python = "^3.12"
 psycopg = {extras = ["binary"], version = "^3.2.4"}
 sqlalchemy = "^2.0.38"
-python-twitter = "^3.5"
+tweepy = "^4.15.0"
 schedule = "^1.2.2"
 
 [tool.poetry.group.dev.dependencies]

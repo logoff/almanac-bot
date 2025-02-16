@@ -44,6 +44,9 @@ class Configuration:
 
         twitter_conf = self._config["twitter"] = {}
 
+        twitter_conf["bearer_token"] = self._config_parser.get(
+            "twitter", "bearer_token"
+        )
         twitter_conf["consumer_key"] = self._config_parser.get(
             "twitter", "consumer_key"
         )

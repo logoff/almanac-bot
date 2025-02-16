@@ -75,6 +75,7 @@ class AlamancBot:
     def _setup_twitter(self) -> None:
         logging.info("Setting up Twitter API client...")
         self.twitter_client = TwitterClient(
+            bearer_token=self.conf.config["twitter"]["bearer_token"],
             consumer_key=self.conf.config["twitter"]["consumer_key"],
             consumer_secret=self.conf.config["twitter"]["consumer_secret"],
             access_token_key=self.conf.config["twitter"]["access_token_key"],

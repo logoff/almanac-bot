@@ -1,8 +1,9 @@
 import datetime
 import logging
 import string
+# from typing import List
 
-import twitter
+import tweepy
 
 from almanacbot.ephemeris import Ephemeris
 
@@ -12,38 +13,45 @@ class TwitterClient:
 
     def __init__(
         self,
+        bearer_token: str,
         consumer_key: str,
         consumer_secret: str,
         access_token_key: str,
         access_token_secret: str,
     ):
-        self._twitter_api: twitter.Api = twitter.Api(
+        # Twitter API v2 client
+        self._client_v2: tweepy.Client = tweepy.Client(
+            bearer_token=bearer_token,
             consumer_key=consumer_key,
             consumer_secret=consumer_secret,
-            access_token_key=access_token_key,
+            access_token=access_token_key,
             access_token_secret=access_token_secret,
         )
 
-        logging.info("Verifying Twitter API client credentials...")
-        self._twitter_api.VerifyCredentials()
-        logging.info("Twitter API client credentials verified.")
+        # Twitter API v1 client
+        # self._client_v1: tweepy.API = tweepy.API(tweepy.OAuth2BearerHandler(bearer_token))
 
     def tweet_ephemeris(self, eph: Ephemeris) -> None:
+        tplace: tweepy.Place = None
+        # if eph.location:
+        #     logging.info(f"Obtaining Place from ephemeris coordinates: {eph.location}")
+        #     places: List[tweepy.Place] = self._client_v1.search_geo(
+        #         lat=eph.location.latitude,
+        #         lon=eph.location.longitude,
+        #         max_results=1,
+        #     )
+        #     if len(places) > 0:
+        #         tplace = places[0]
+
         logging.info(f"Tweeting ephemeris: {eph}")
-        self._twitter_api.PostUpdate(
-            status=TwitterClient._process_tweet_text(eph),
-            latitude=eph.location.latitude if eph.location else None,
-            longitude=eph.location.longitude if eph.location else None,
-            display_coordinates=True if eph.location else False,
+        self._client_v2.create_tweet(
+            text=TwitterClient._process_tweet_text(eph),
+            place_id=tplace[0] if tplace else None,
         )
 
     @staticmethod
     def _process_tweet_text(eph: Ephemeris) -> str:
         today = datetime.datetime.now(datetime.timezone.utc)
-
-        logging.error(f"ephemeris type: {type(eph)}")
-        logging.error(f"ephemeris dict: {eph.__dict__}")
-
         template = string.Template(eph.text)
 
         values = {
