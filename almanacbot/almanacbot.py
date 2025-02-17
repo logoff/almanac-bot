@@ -93,6 +93,7 @@ class AlamancBot:
             hostname=self.conf.config["postgresql"]["hostname"],
             database=self.conf.config["postgresql"]["database"],
             ephemeris_table=self.conf.config["postgresql"]["ephemeris_table"],
+            logging_echo=bool(self.conf.config["postgresql"]["logging_echo"]),
         )
         logging.info("PostgreSQL client set up.")
 

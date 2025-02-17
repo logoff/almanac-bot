@@ -1,4 +1,3 @@
-import logging
 from typing import List
 
 import sqlalchemy
@@ -18,13 +17,13 @@ class PostgreSQLClient:
         hostname: str,
         database: str,
         ephemeris_table: str,
+        logging_echo: bool,
     ):
         self.engine = create_engine(
-            f"postgresql+psycopg://{user}:{password}@{hostname}/{database}", echo=True
+            f"postgresql+psycopg://{user}:{password}@{hostname}/{database}",
+            echo=logging_echo,
         )
         self.ephemeris_table: str = ephemeris_table
-
-        logging.error(f"EPHS LIST: {self.get_today_ephemeris()}")
 
     def get_today_ephemeris(self) -> List[Ephemeris]:
         query: Select = select(Ephemeris).filter(
@@ -32,5 +31,4 @@ class PostgreSQLClient:
         )
         session: Session = Session(self.engine)
         ephs: List[Ephemeris] = session.scalars(query).all()
-        logging.error(f"Epehemeris: {ephs}")
         return ephs

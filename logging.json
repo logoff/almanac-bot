@@ -3,7 +3,7 @@
     "disable_existing_loggers": false,
     "formatters": {
         "simple": {
-            "format": "%(asctime)s\t-\t%(levelname)s\t-\t%(filename)s:%(lineno)d\t-\t%(message)s"
+            "format": "%(asctime)s - %(levelname)s\t- %(name)s - %(filename)s:%(lineno)d - %(message)s"
         }
     },
 
@@ -39,6 +39,11 @@
     "loggers": {
         "almanac-bot": {
             "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": "no"
+        },
+        "sqlalchemy": {
+            "level": "ERROR",
             "handlers": ["console"],
             "propagate": "no"
         }

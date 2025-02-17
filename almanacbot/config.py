@@ -74,6 +74,9 @@ class Configuration:
         postgresql_conf["ephemeris_table"] = self._config_parser.get(
             "postgresql", "ephemeris_table"
         )
+        postgresql_conf["logging_echo"] = self._config_parser.get(
+            "postgresql", "logging_echo"
+        )
 
         logging.debug("PostgreSQL configuration correctly read.")
 

@@ -16,3 +16,4 @@ password=almanac
 hostname=postgres
 database=almanac
 ephemeris_table=ephemeris
+logging_echo=False
