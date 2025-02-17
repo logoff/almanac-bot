@@ -23,7 +23,7 @@ class Configuration:
             self.__read_language_configuration()
             self.__read_twitter_configuration()
             self.__read_postgresql_configuration()
-            logging.info("Configuration read correctly.")
+            logging.info("Configuration correctly read.")
         except Exception as e:
             err_msg = (
                 f"Error reading configuration parameters from file {config_file_path}"

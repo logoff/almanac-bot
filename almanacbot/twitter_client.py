@@ -3,6 +3,8 @@ import logging
 import string
 # from typing import List
 
+from babel import Locale
+from babel.dates import format_date
 import tweepy
 
 from almanacbot.ephemeris import Ephemeris
@@ -18,7 +20,10 @@ class TwitterClient:
         consumer_secret: str,
         access_token_key: str,
         access_token_secret: str,
+        locale: Locale,
     ):
+        self.locale = locale
+
         # Twitter API v2 client
         self._client_v2: tweepy.Client = tweepy.Client(
             bearer_token=bearer_token,
@@ -45,18 +50,20 @@ class TwitterClient:
 
         logging.info(f"Tweeting ephemeris: {eph}")
         self._client_v2.create_tweet(
-            text=TwitterClient._process_tweet_text(eph),
+            text=TwitterClient._process_tweet_text(eph, self.locale),
             place_id=tplace[0] if tplace else None,
         )
 
     @staticmethod
-    def _process_tweet_text(eph: Ephemeris) -> str:
+    def _process_tweet_text(eph: Ephemeris, locale: Locale) -> str:
         today = datetime.datetime.now(datetime.timezone.utc)
         template = string.Template(eph.text)
 
         values = {
-            "date": eph.date.strftime("%d de %B de %Y"),
+            "date": format_date(date=eph.date.date(), format="full", locale=locale),
             "years_ago": today.year - eph.date.year,
         }
+
+        logging.debug(f"Processed ephemeris text: {template.substitute(values)}")
 
         return template.substitute(values)

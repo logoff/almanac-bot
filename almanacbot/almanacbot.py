@@ -1,7 +1,6 @@
 """Almanac Bot module"""
 
 import json
-import locale
 import logging
 import logging.config
 import os
@@ -9,6 +8,7 @@ import sys
 import time
 from typing import List
 
+from babel import Locale, UnknownLocaleError
 import schedule
 
 from almanacbot import config, constants
@@ -36,11 +36,12 @@ class AlamancBot:
             logging.exception("Error getting configuration.")
             sys.exit(1)
 
-        # setup language
+        # setup locale
         try:
-            locale.setlocale(locale.LC_TIME, self.conf.config["language"]["locale"])
-        except locale.Error:
-            logging.exception("Error setting up language.")
+            self.locale: Locale = Locale.parse(self.conf.config["language"]["locale"])
+            logging.info(f"Locale set to: {self.locale}")
+        except (ValueError, UnknownLocaleError):
+            logging.exception("Error setting up locale.")
             sys.exit(1)
 
         # setup Twitter API client
@@ -80,6 +81,7 @@ class AlamancBot:
             consumer_secret=self.conf.config["twitter"]["consumer_secret"],
             access_token_key=self.conf.config["twitter"]["access_token_key"],
             access_token_secret=self.conf.config["twitter"]["access_token_secret"],
+            locale=self.locale,
         )
         logging.info("Twitter API client set up.")
 
