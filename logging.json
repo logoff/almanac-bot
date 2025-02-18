@@ -3,7 +3,20 @@
     "disable_existing_loggers": false,
     "formatters": {
         "simple": {
-            "format": "%(asctime)s\t-\t%(levelname)s\t-\t%(filename)s:%(lineno)d\t-\t%(message)s"
+            "format": "%(asctime)s - %(levelname)s\t- %(name)s - %(filename)s:%(lineno)d - %(message)s"
+        }
+    },
+
+    "loggers": {
+        "almanacbot": {
+            "level": "DEBUG",
+            "handlers": ["console", "debug_file_handler", "error_file_handler"],
+            "propagate": "no"
+        },
+        "sqlalchemy": {
+            "level": "ERROR",
+            "handlers": ["console", "debug_file_handler", "error_file_handler"],
+            "propagate": "no"
         }
     },
 
@@ -34,18 +47,5 @@
             "backupCount": 20,
             "encoding": "utf8"
         }
-    },
-
-    "loggers": {
-        "almanac-bot": {
-            "level": "DEBUG",
-            "handlers": ["console"],
-            "propagate": "no"
-        }
-    },
-
-    "root": {
-        "level": "DEBUG",
-        "handlers": ["console", "debug_file_handler", "error_file_handler"]
     }
 }

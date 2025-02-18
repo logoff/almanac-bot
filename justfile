@@ -16,3 +16,6 @@ docker-serve-site: docker-build
 
 docker-clean-db:
   docker volume rm almanac-bot_postgres_data
+
+docker-load-db-data:
+  docker container exec -it almanac-bot sh -c "poetry run python -m typer almanacbot.data_loader run"

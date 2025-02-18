@@ -1,4 +1,5 @@
 [language]
+# example ca_ES
 locale=
 
 [twitter]
@@ -15,3 +16,4 @@ password=almanac
 hostname=postgres
 database=almanac
 ephemeris_table=ephemeris
+logging_echo=False
