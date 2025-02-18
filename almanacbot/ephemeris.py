@@ -2,7 +2,7 @@ import datetime
 from dataclasses import dataclass
 from typing import Optional
 
-from sqlalchemy import TIMESTAMP, Text, Tuple
+from sqlalchemy import TIMESTAMP, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import UserDefinedType
 import sqlalchemy
@@ -39,10 +39,10 @@ class LatLngType(UserDefinedType):
 
     def bind_processor(self, dialect):
         """
-        Return function to serialize a Coordinate into a database string literal.
+        Return function to serialize a Location into a database string literal.
         """
 
-        def process(value: Location | Tuple[float, float] | None) -> str | None:
+        def process(value: Location | tuple[float, float] | None) -> str | None:
             if value is None:
                 return None
 
@@ -76,4 +76,4 @@ class Ephemeris(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[datetime.datetime] = mapped_column(TIMESTAMP(timezone=True))
     text: Mapped[str] = mapped_column(Text)
-    location: Mapped[Optional[Location]] = mapped_column(LatLngType())
+    location: Mapped[Optional[Location]] = mapped_column(LatLngType, default=None)

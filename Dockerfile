@@ -16,7 +16,7 @@ RUN mkdir logs/
 
 # copy project files and install dependencies
 COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root
+RUN poetry install
 
 # Adding the whole repository to the image
 COPY . ./
