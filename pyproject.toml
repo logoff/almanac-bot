@@ -14,7 +14,7 @@ documentation = "https://python-poetry.org/docs/"
 [tool.poetry]
 name = "almanac-bot"
 packages = [{ include = "almanacbot" }]
-version = "0.4.0"
+version = "0.5.0"
 description = "Almanac bot for Twitter."
 authors = [ "logoff" ]
 license = "MIT"
