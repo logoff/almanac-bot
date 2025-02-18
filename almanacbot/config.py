@@ -3,11 +3,13 @@
 import configparser
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 class Configuration:
     """Class containing all the configuration parameters of the program"""
 
-    def __init__(self, config_file_path):
+    def __init__(self, config_file_path: str):
         self._config: dict = {}
         self._config_parser: configparser = configparser.ConfigParser()
 
@@ -19,11 +21,11 @@ class Configuration:
             raise ValueError(err_msg, e) from e
 
         try:
-            logging.info("Reading configuration...")
+            logger.info("Reading configuration...")
             self.__read_language_configuration()
             self.__read_twitter_configuration()
             self.__read_postgresql_configuration()
-            logging.info("Configuration correctly read.")
+            logger.info("Configuration correctly read.")
         except Exception as e:
             err_msg = (
                 f"Error reading configuration parameters from file {config_file_path}"
@@ -31,16 +33,16 @@ class Configuration:
             raise ValueError(err_msg, e) from e
 
     def __read_language_configuration(self):
-        logging.debug("Reading language configuration...")
+        logger.debug("Reading language configuration...")
 
         lang_conf = self._config["language"] = {}
 
         lang_conf["locale"] = self._config_parser.get("language", "locale")
 
-        logging.debug("Language configuration correctly read.")
+        logger.debug("Language configuration correctly read.")
 
     def __read_twitter_configuration(self):
-        logging.debug("Reading Twitter configuration...")
+        logger.debug("Reading Twitter configuration...")
 
         twitter_conf = self._config["twitter"] = {}
 
@@ -60,10 +62,10 @@ class Configuration:
             "twitter", "access_token_secret"
         )
 
-        logging.debug("Twitter configuration correctly read.")
+        logger.debug("Twitter configuration correctly read.")
 
     def __read_postgresql_configuration(self):
-        logging.debug("Reading PostgreSQL configuration...")
+        logger.debug("Reading PostgreSQL configuration...")
 
         postgresql_conf = self._config["postgresql"] = {}
 
@@ -78,7 +80,7 @@ class Configuration:
             "postgresql", "logging_echo"
         )
 
-        logging.debug("PostgreSQL configuration correctly read.")
+        logger.debug("PostgreSQL configuration correctly read.")
 
     @property
     def config(self):
