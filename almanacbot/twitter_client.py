@@ -9,6 +9,8 @@ import tweepy
 
 from almanacbot.ephemeris import Ephemeris
 
+logger = logging.getLogger(__name__)
+
 
 class TwitterClient:
     """Class serving as Twitter API client"""
@@ -37,9 +39,10 @@ class TwitterClient:
         # self._client_v1: tweepy.API = tweepy.API(tweepy.OAuth2BearerHandler(bearer_token))
 
     def tweet_ephemeris(self, eph: Ephemeris) -> None:
-        tplace: tweepy.Place = None
+        # tplace: tweepy.Place = None
+        # no access to places using Twitter v1 API with free account
         # if eph.location:
-        #     logging.info(f"Obtaining Place from ephemeris coordinates: {eph.location}")
+        #     logger.info(f"Obtaining Place from ephemeris coordinates: {eph.location}")
         #     places: List[tweepy.Place] = self._client_v1.search_geo(
         #         lat=eph.location.latitude,
         #         lon=eph.location.longitude,
@@ -48,10 +51,16 @@ class TwitterClient:
         #     if len(places) > 0:
         #         tplace = places[0]
 
-        logging.info(f"Tweeting ephemeris: {eph}")
+        # logger.info(f"Tweeting ephemeris: {eph}")
+        # self._client_v2.create_tweet(
+        #     text=TwitterClient._process_tweet_text(eph, self.locale),
+        #     place_id=tplace[0] if tplace else None,
+        # )
+
+        # post tweet without place ID (geolocation)
+        logger.info(f"Tweeting ephemeris: {eph}")
         self._client_v2.create_tweet(
             text=TwitterClient._process_tweet_text(eph, self.locale),
-            place_id=tplace[0] if tplace else None,
         )
 
     @staticmethod
@@ -64,6 +73,6 @@ class TwitterClient:
             "years_ago": today.year - eph.date.year,
         }
 
-        logging.debug(f"Processed ephemeris text: {template.substitute(values)}")
+        logger.debug(f"Processed ephemeris text: {template.substitute(values)}")
 
         return template.substitute(values)
