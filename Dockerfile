@@ -1,13 +1,8 @@
 # base on Python 3.12 (Alpine)
-FROM python:3.12-alpine
+FROM alpine:3.19
 
-# upgrade pip
-RUN pip install --upgrade pip
-
-# install Poetry
-RUN apk add curl gcc
-RUN curl -sSL https://install.python-poetry.org | python3 - --version "1.8.5"
-ENV PATH=/root/.local/bin:$PATH
+# install uv https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # setup app folders
 RUN mkdir /almanac-bot
@@ -15,10 +10,10 @@ WORKDIR /almanac-bot
 RUN mkdir logs/
 
 # copy project files and install dependencies
-COPY pyproject.toml poetry.lock ./
-RUN poetry install
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --locked
 
 # Adding the whole repository to the image
 COPY . ./
 
-ENTRYPOINT [ "poetry", "run", "python", "-m", "almanacbot.almanacbot" ]
+ENTRYPOINT [ "uv", "run", "python", "-m", "almanacbot.almanacbot" ]

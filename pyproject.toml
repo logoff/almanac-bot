@@ -1,43 +1,47 @@
 [project]
 name = "almanac-bot"
-keywords = [ "twitter", "history" ]
-# https://python-poetry.org/docs/pyproject/#classifiers
-dynamic = [ "authors", "description", "license", "version", "classifiers", "readme" ]
-
-[project.urls]
-# https://python-poetry.org/docs/pyproject/#urls
-homepage = "https://python-poetry.org/"
-repository = "https://github.com/logoff/almanac-bot"
-documentation = "https://python-poetry.org/docs/"
-"Bug Tracker" = "https://github.com/logoff/almanac-bot/issues"
-
-[tool.poetry]
-name = "almanac-bot"
-packages = [{ include = "almanacbot" }]
-version = "0.5.0"
+version = "0.6.0"
 description = "Almanac bot for Twitter."
-authors = [ "logoff" ]
+authors = [{ name = "logoff" }]
+requires-python = ">=3.12,<4"
+readme = "README.md"
 license = "MIT"
-readme = ["README.md"]
+keywords = [
+    "twitter",
+    "history",
+]
 classifiers = [
     "Topic :: Software Development :: Build Tools",
-    "Topic :: Software Development :: Libraries :: Python Modules"
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "psycopg[binary]>=3.2.4,<4",
+    "sqlalchemy>=2.0.38,<3",
+    "tweepy>=4.15.0,<5",
+    "schedule>=1.2.2,<2",
+    "babel>=2.17.0,<3",
+    "typer>=0.15.1,<0.16",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-psycopg = {extras = ["binary"], version = "^3.2.4"}
-sqlalchemy = "^2.0.38"
-tweepy = "^4.15.0"
-schedule = "^1.2.2"
-babel = "^2.17.0"
-typer = "^0.15.1"
+[project.urls]
+homepage = "ttps://github.com/logoff/almanac-bot"
+repository = "https://github.com/logoff/almanac-bot"
+documentation = "ttps://github.com/logoff/almanac-bot"
+"Bug Tracker" = "https://github.com/logoff/almanac-bot/issues"
 
-[tool.poetry.group.dev.dependencies]
-ipython = "^8.32.0"
-pre-commit = "^4.1.0"
-ruff = "^0.9.6"
+[dependency-groups]
+dev = [
+    "ipython>=8.32.0,<9",
+    "pre-commit>=4.1.0,<5",
+    "ruff>=0.9.6,<0.10",
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["almanacbot"]
+
+[tool.hatch.build.targets.wheel]
+include = ["almanacbot"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

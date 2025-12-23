@@ -1,7 +1,7 @@
 set shell := ["bash", "-uc"]
 
 project_name := "almanac-bot"
-project_version := `poetry version --short`
+project_version := `uv version --short`
 tag := project_name + ":" + project_version
 
 version:
@@ -18,4 +18,4 @@ docker-clean-db:
   docker volume rm almanac-bot_postgres_data
 
 docker-load-db-data:
-  docker container exec -it almanac-bot sh -c "poetry run python -m typer almanacbot.data_loader run"
+  docker container exec -it almanac-bot sh -c "uv run python -m typer almanacbot.data_loader run"
