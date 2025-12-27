@@ -193,6 +193,56 @@ just help  # Show all available commands
                       PostgreSQL
 ```
 
+## Production Deployment (Docker Swarm)
+
+For production deployment on Docker Swarm:
+
+### 1. Create Docker secrets
+
+```sh
+# Create secret from your config.ini file
+docker secret create almanac_config /path/to/config.ini
+```
+
+### 2. Prepare the stack directory
+
+```sh
+mkdir -p /path/to/almanac-bot/{init_db,postgres}
+
+# Copy the database init script (creates schema on first run)
+cp postgres/init-ephemeris-db.sh /path/to/almanac-bot/postgres/
+
+# Copy your ephemeris CSV data
+cp your_data.csv /path/to/almanac-bot/init_db/init_db.csv
+```
+
+### 3. Configure the stack
+
+```sh
+# Copy the example and adjust paths
+cp docker-compose.swarm.example.yaml /path/to/almanac-bot/docker-compose.swarm.yaml
+
+# Edit the file and update volume paths to match your directory
+```
+
+### 4. Deploy
+
+```sh
+docker stack deploy -c /path/to/almanac-bot/docker-compose.swarm.yaml almanac
+```
+
+### 5. Load ephemeris data into database
+
+After the stack is running, load the CSV data into PostgreSQL:
+
+```sh
+# Find the bot container
+docker ps | grep almanac-bot
+
+# Load the CSV into the database
+docker exec <container_id> uv run python -m typer almanacbot.data_loader run
+```
+
 ## License
 
 MIT

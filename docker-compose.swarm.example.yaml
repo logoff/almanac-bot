@@ -1,0 +1,75 @@
+# Docker Swarm stack for almanac-bot
+# Copy this file to docker-compose.swarm.yaml and adjust paths for your environment
+#
+# Prerequisites:
+# 1. Create Docker secrets:
+#    docker secret create almanac_config /path/to/config.ini
+#
+# 2. Copy data files to the VM:
+#    - init_db/*.csv files to /path/to/stacks/almanac-bot/init_db/
+#    - postgres/init-ephemeris-db.sh to /path/to/stacks/almanac-bot/postgres/
+#
+# 3. Deploy the stack:
+#    docker stack deploy -c docker-compose.swarm.yaml almanac
+
+services:
+  almanac-bot:
+    image: logoff/almanac-bot:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    secrets:
+      - source: almanac_config
+        target: /almanac-bot/config.ini
+    volumes:
+      - /path/to/stacks/almanac-bot/init_db/:/almanac-bot/init_db/:ro
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.almanac.schedule: "0 0 8 * * *"
+      ofelia.job-exec.almanac.command: "uv run python -m almanacbot.almanacbot"
+    entrypoint: ["tail", "-f", "/dev/null"]
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  ofelia:
+    image: mcuadros/ofelia:latest
+    restart: unless-stopped
+    depends_on:
+      - almanac-bot
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+  postgres:
+    image: postgres:17.3-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U almanac -d almanac"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - /path/to/stacks/almanac-bot/postgres/:/docker-entrypoint-initdb.d/:ro
+    environment:
+      POSTGRES_USER: almanac
+      POSTGRES_PASSWORD: almanac
+      POSTGRES_DB: almanac
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+secrets:
+  almanac_config:
+    external: true
+
+volumes:
+  postgres_data:
