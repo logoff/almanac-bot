@@ -17,7 +17,7 @@ A Twitter bot that tweets historical events (ephemeris) on their anniversary dat
 ## Dependencies
 
 - [Docker](https://www.docker.com/)
-- [Python 3.12+](https://www.python.org/)
+- [Python 3.13](https://www.python.org/)
 - [PostgreSQL 17.3+](https://www.postgresql.org/)
 - [just](https://just.systems/) (optional, for convenience commands)
 
