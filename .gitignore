@@ -5,7 +5,7 @@
 .vscode/
 
 # Configuration (contains secrets)
-config.ini
+config*.ini
 docker-compose.swarm.yaml
 
 # Logs

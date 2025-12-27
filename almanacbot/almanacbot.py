@@ -88,6 +88,7 @@ class AlmanacBot:
             access_token_key=self.conf.config["twitter"]["access_token_key"],
             access_token_secret=self.conf.config["twitter"]["access_token_secret"],
             locale=self.locale,
+            media_base_path=constants.MEDIA_BASE_PATH,
         )
         logger.info("Twitter API client set up.")
 
@@ -129,7 +130,10 @@ class AlmanacBot:
             try:
                 if dry_run:
                     text = TwitterClient._process_tweet_text(eph, self.locale)
-                    logger.info(f"[DRY-RUN] Would tweet id={eph.id}: {text}")
+                    media_info = f", media={eph.media_path}" if eph.media_path else ""
+                    logger.info(
+                        f"[DRY-RUN] Would tweet id={eph.id}{media_info}: {text}"
+                    )
                 else:
                     logger.info(f"Tweeting ephemeris id={eph.id}...")
                     self.twitter_client.tweet_ephemeris(eph)

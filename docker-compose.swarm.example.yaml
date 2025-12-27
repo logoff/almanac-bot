@@ -24,6 +24,7 @@ services:
         target: /almanac-bot/config.ini
     volumes:
       - /path/to/stacks/almanac-bot/init_db/:/almanac-bot/init_db/:ro
+      - /path/to/stacks/almanac-bot/media/:/almanac-bot/media/:ro
     labels:
       ofelia.enabled: "true"
       ofelia.job-exec.almanac.schedule: "0 0 8 * * *"

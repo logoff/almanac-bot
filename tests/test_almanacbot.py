@@ -73,7 +73,7 @@ class TestRun:
             id=1,
             date=datetime.datetime(1950, 12, 23, 12, 0, tzinfo=datetime.timezone.utc),
             text="Test event ${years_ago} years ago.",
-            location=None,
+            media_path=None,
             last_tweeted_at=None,
         )
         bot_with_mocks.postgresql_client.get_untweeted_today_ephemeris.return_value = [
@@ -150,7 +150,7 @@ class TestDryRunOutput:
             id=1,
             date=datetime.datetime(1950, 12, 23, 12, 0, tzinfo=datetime.timezone.utc),
             text="El ${date}, fa ${years_ago} anys.",
-            location=None,
+            media_path=None,
             last_tweeted_at=None,
         )
         bot_with_mocks.postgresql_client.get_untweeted_today_ephemeris.return_value = [

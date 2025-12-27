@@ -9,6 +9,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - ./almanacbot/:/almanac-bot/almanacbot
+      - ./media/:/almanac-bot/media/:ro
     labels:
       ofelia.enabled: "true"
       ofelia.job-exec.almanac.schedule: "0 0 8 * * *"

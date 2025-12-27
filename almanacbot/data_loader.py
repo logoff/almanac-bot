@@ -1,4 +1,3 @@
-import ast
 import configparser
 import csv
 
@@ -7,7 +6,7 @@ import typer
 
 from almanacbot import constants
 from almanacbot.config import Configuration
-from almanacbot.ephemeris import Ephemeris, Location
+from almanacbot.ephemeris import Ephemeris
 from almanacbot.postgresql_client import PostgreSQLClient
 
 config_parser: configparser = configparser.ConfigParser()
@@ -55,18 +54,13 @@ def main(
             next(csvReader, None)  # skip header
             for row in csvReader:
                 print(f"Read row: {row}")
-                location_tpl: tuple = ast.literal_eval(row[2]) if row[2] else None
-                location: Location = None
-                if location_tpl:
-                    location: Location = Location(
-                        latitude=location_tpl[0],
-                        longitude=location_tpl[1],
-                    )
+                # Optional 3rd column: media_path
+                media_path = row[2] if len(row) > 2 and row[2] else None
                 psql_client.insert_ephemeris(
                     Ephemeris(
                         date=row[0],
                         text=row[1],
-                        location=location,
+                        media_path=media_path,
                     )
                 )
         except (OperationalError, ValueError) as exc:

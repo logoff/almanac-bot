@@ -35,7 +35,7 @@ class TestGetUntweetedTodayEphemeris:
                 1950, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
             ),
             text="Test",
-            location=None,
+            media_path=None,
             last_tweeted_at=None,
         )
 
@@ -137,7 +137,7 @@ class TestGetTodayEphemeris:
                     1950, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
                 ),
                 text="Event 1",
-                location=None,
+                media_path=None,
                 last_tweeted_at=None,
             ),
             Ephemeris(
@@ -146,7 +146,7 @@ class TestGetTodayEphemeris:
                     1960, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
                 ),
                 text="Event 2",
-                location=None,
+                media_path=None,
                 last_tweeted_at=now,  # Already tweeted
             ),
         ]

@@ -8,7 +8,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         id serial primary key,
         date timestamp with time zone not null,
         text text not null,
-        location point default null,
+        media_path text default null,
         last_tweeted_at timestamp with time zone default null
      );
 

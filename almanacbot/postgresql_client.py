@@ -9,7 +9,6 @@ from sqlalchemy import (
     extract,
     func,
     insert,
-    null,
     or_,
     select,
 )
@@ -91,11 +90,7 @@ class PostgreSQLClient:
             stmnt = insert(Ephemeris).values(
                 date=eph.date,
                 text=eph.text,
-                location=(
-                    sqlalchemy.func.point(eph.location.latitude, eph.location.longitude)
-                    if eph.location is not None
-                    else null()
-                ),
+                media_path=eph.media_path,
             )
             session.execute(stmnt)
             session.commit()

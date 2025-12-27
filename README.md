@@ -72,9 +72,11 @@ just docker-load-data
 CSV format (`init_db.csv`):
 
 ```csv
-date;text;location
-1899-11-29 12:00 Europe/Madrid;El ${date}, avui fa ${years_ago} anys...;(41.38,2.17)
+date;text;media_path
+1899-11-29 12:00 Europe/Madrid;El ${date}, avui fa ${years_ago} anys...;images/event_1899.jpg
 ```
+
+The `media_path` column is optional. If provided, the image will be uploaded with the tweet.
 
 ## Usage
 
@@ -138,7 +140,7 @@ CREATE TABLE almanac.ephemeris (
     id serial primary key,
     date timestamp with time zone not null,
     text text not null,
-    location point default null,
+    media_path text default null,
     last_tweeted_at timestamp with time zone default null
 );
 ```

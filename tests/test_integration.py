@@ -56,7 +56,7 @@ class TestDatabaseIntegration:
 
     def test_insert_and_retrieve_ephemeris(self, db_client, clean_db):
         """Should insert and retrieve ephemeris correctly."""
-        from almanacbot.ephemeris import Ephemeris, Location
+        from almanacbot.ephemeris import Ephemeris
 
         now = datetime.datetime.now(datetime.timezone.utc)
         eph = Ephemeris(
@@ -64,7 +64,7 @@ class TestDatabaseIntegration:
                 1950, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
             ),
             text="Test event ${years_ago} years ago.",
-            location=Location(41.38, 2.17),
+            media_path=None,
         )
 
         db_client.insert_ephemeris(eph)
@@ -112,7 +112,7 @@ class TestDatabaseIntegration:
                 1950, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
             ),
             text="Never tweeted event.",
-            location=None,
+            media_path=None,
         )
 
         db_client.insert_ephemeris(eph)
@@ -130,7 +130,7 @@ class TestDatabaseIntegration:
                 1950, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
             ),
             text="Test event.",
-            location=None,
+            media_path=None,
         )
 
         db_client.insert_ephemeris(eph)
@@ -164,7 +164,7 @@ class TestDatabaseIntegration:
                     year, now.month, now.day, 12, 0, tzinfo=datetime.timezone.utc
                 ),
                 text=f"Event from {year}.",
-                location=None,
+                media_path=None,
             )
             db_client.insert_ephemeris(eph)
 
@@ -189,7 +189,7 @@ class TestDatabaseIntegration:
                 tzinfo=datetime.timezone.utc,
             ),
             text="Yesterday's event.",
-            location=None,
+            media_path=None,
         )
         db_client.insert_ephemeris(eph)
 
