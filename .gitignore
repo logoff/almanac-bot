@@ -6,6 +6,7 @@
 
 # Configuration (contains secrets)
 config.ini
+docker-compose.swarm.yaml
 
 # Logs
 *.log
