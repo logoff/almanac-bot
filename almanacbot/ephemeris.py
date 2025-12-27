@@ -77,3 +77,6 @@ class Ephemeris(Base):
     date: Mapped[datetime.datetime] = mapped_column(TIMESTAMP(timezone=True))
     text: Mapped[str] = mapped_column(Text)
     location: Mapped[Optional[Location]] = mapped_column(LatLngType, default=None)
+    last_tweeted_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+        TIMESTAMP(timezone=True), default=None
+    )

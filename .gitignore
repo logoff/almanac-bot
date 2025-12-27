@@ -1,33 +1,28 @@
-# virtualenv
+# Virtual environment
 .venv/
 
-# PyCharm
-.idea/
-
-# VS Code
+# IDE
 .vscode/
 
-# configuration
+# Configuration (contains secrets)
 config.ini
 
-# logs
+# Logs
 *.log
 
-# ruff cache folder
-.ruff_cache
-
-# Sphynx builds
-_build/
-
-# build and distribution files
-*.egg-info/
-dist/
-build/
-
-# Byte-compiled / optimized / DLL files
+# Caches
+.ruff_cache/
+.pytest_cache/
+.coverage
 __pycache__/
 *.py[cod]
-*$py.class
 
-# init DB file
+# Build and distribution
+dist/
+
+# Data files (user-specific)
 init_db.csv
+init_db/
+
+# Claude Code
+.claude/

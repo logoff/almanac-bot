@@ -1,7 +1,41 @@
-__pycache__/
+# Version control
 .git/
-.github/
-.vscode/
 .gitignore
-.ruff_cache
+
+# IDE
+.vscode/
+
+# Virtual environment
+.venv/
+
+# Cache directories
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+
+# Build artifacts
+dist/
+
+# Test coverage
+.coverage
+
+# Docker files
 Dockerfile
+.dockerignore
+compose.yaml
+
+# Documentation (keep README.md - required by pyproject.toml)
+LICENSE.txt
+
+# Logs
+*.log
+
+# Claude Code
+.claude/
+
+# Tests
+tests/
+
+# Development files
+.pre-commit-config.yaml
+justfile

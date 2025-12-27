@@ -4,18 +4,41 @@ services:
       context: .
     container_name: "almanac-bot"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: "unless-stopped"
     volumes:
       - ./almanacbot/:/almanac-bot/almanacbot
+    labels:
+      ofelia.enabled: "true"
+      ofelia.job-exec.almanac.schedule: "0 0 8 * * *"
+      ofelia.job-exec.almanac.command: "uv run python -m almanacbot.almanacbot"
+    entrypoint: ["tail", "-f", "/dev/null"]
+
+  ofelia:
+    image: mcuadros/ofelia:latest
+    container_name: "ofelia-scheduler"
+    restart: "unless-stopped"
+    depends_on:
+      - almanac-bot
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   postgres:
     image: postgres:17.3-alpine
+    container_name: "almanac-postgres"
     restart: "unless-stopped"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U almanac -d almanac"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/:/docker-entrypoint-initdb.d/
     ports:
-    - 5432:5432
+      - 5432:5432
     environment:
       POSTGRES_USER: almanac
       POSTGRES_PASSWORD: almanac
