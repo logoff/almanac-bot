@@ -1,6 +1,7 @@
 # Almanac Bot
 
 [![PyPi package](https://img.shields.io/pypi/v/almanac-bot.svg)](https://pypi.python.org/pypi/almanac-bot)
+[![Docker Hub](https://img.shields.io/docker/v/logoff/almanac-bot?label=Docker%20Hub)](https://hub.docker.com/r/logoff/almanac-bot)
 
 A Twitter bot that tweets historical events (ephemeris) on their anniversary dates. Each day, it finds events that happened on that calendar date (any year) and tweets them with localized text.
 
